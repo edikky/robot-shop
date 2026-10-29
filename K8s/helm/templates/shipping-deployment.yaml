@@ -14,40 +14,41 @@ spec:
       labels:
         service: shipping
     spec:
-      {{ if .Values.psp.enabled }}
+      {{- if .Values.psp.enabled }}
       serviceAccountName: robot-shop
-      {{ end }}
+      {{- end }}
       containers:
-      - name: shipping
-        image: {{ .Values.image.repo }}/rs-shipping:{{ .Values.image.version }}
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        ports:
-        - containerPort: 8080
-        # it's Java it needs lots of memory
-        resources:
-          limits:
-            cpu: 200m
-            memory: 1000Mi
-          requests:
-            cpu: 100m
-            memory: 500Mi
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          failureThreshold: 30
-          successThreshold: 1
+        - name: shipping
+          image: {{ .Values.image.repo }}/rs-shipping:{{ .Values.image.version }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+
+          resources:
+            {{- toYaml .Values.shipping.resources | nindent 12 }}
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: {{ .Values.shipping.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.shipping.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.shipping.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.shipping.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.shipping.readinessProbe.successThreshold }}
+
       restartPolicy: Always
+
       {{- with .Values.shipping.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+
       {{- with .Values.shipping.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+
       {{- with .Values.shipping.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
