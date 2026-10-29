@@ -19,17 +19,25 @@ spec:
       {{ end }}
       containers:
       - name: catalogue
-        image: {{ .Values.image.repo }}/rs-catalogue:{{ .Values.image.version }}
+        image: {{ .Values.catalogue.image | default (printf "%s/rs-catalogue:%s" .Values.image.repo .Values.image.version) | quote }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.catalogue.otelEnabled }}
+        env:
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://tempo.monitoring.svc.cluster.local:4318"
+          - name: OTEL_EXPORTER_OTLP_PROTOCOL
+            value: "http/protobuf"
+          - name: OTEL_TRACES_EXPORTER
+            value: "otlp"
+          - name: OTEL_METRICS_EXPORTER
+            value: "none"
+          - name: OTEL_LOGS_EXPORTER
+            value: "none"
+        {{- end }}
         ports:
         - containerPort: 8080
         resources:
-          limits:
-            cpu: 200m
-            memory: 100Mi
-          requests:
-            cpu: 100m
-            memory: 50Mi
+          {{- toYaml .Values.catalogue.resources | nindent 10 }}
       restartPolicy: Always
       {{- with .Values.catalogue.affinity }}
       affinity:

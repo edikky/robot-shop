@@ -27,9 +27,27 @@ ocCreateRoute: false
 #   tolerations: []
 ######################################
 
-cart: {}
+cart:
+  image: edikky/robot-shop-cart:otel-v1
+  otelEnabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
 
-catalogue: {}
+catalogue:
+  image: edikky/robot-shop-catalogue:otel-v1
+  otelEnabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
 
 dispatch: {}
 

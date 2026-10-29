@@ -1,0 +1,27 @@
+# Capstone 2 — Stage 4: Distributed Tracing
+# Lightweight Grafana Tempo deployment
+
+replicas: 1
+
+tempo:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+
+persistence:
+  enabled: false
+
+tempoQuery:
+  enabled: false

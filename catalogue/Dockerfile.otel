@@ -1,0 +1,25 @@
+FROM node:14
+
+WORKDIR /opt/server
+
+COPY package.json ./
+
+RUN npm install
+
+RUN npm install --no-save \
+    @opentelemetry/auto-instrumentations-node@0.56.0 \
+    @opentelemetry/exporter-trace-otlp-http@0.57.2
+
+COPY server.js ./
+
+ENV NODE_OPTIONS="--require @opentelemetry/auto-instrumentations-node/register"
+
+ENV OTEL_SERVICE_NAME="robot-shop-catalogue"
+
+ENV OTEL_TRACES_EXPORTER="otlp"
+
+ENV OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
+
+EXPOSE 8080
+
+CMD ["node", "server.js"]
