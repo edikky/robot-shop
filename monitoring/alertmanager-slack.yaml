@@ -1,0 +1,24 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: robot-shop-slack
+  namespace: monitoring
+spec:
+  route:
+    receiver: slack
+    groupBy: ["alertname"]
+    groupWait: 10s
+    repeatInterval: 1h
+    matchers:
+      - name: alertname
+        value: RobotShopAvailabilitySLOBreach
+        matchType: "="
+  receivers:
+    - name: slack
+      slackConfigs:
+        - apiURL:
+            name: slack-webhook
+            key: url
+          sendResolved: true
+          title: "{{ .Status | toUpper }}: {{ .CommonAnnotations.summary }}"
+          text: "{{ .CommonAnnotations.description }}\nRunbook: {{ .CommonAnnotations.runbook_url }}"

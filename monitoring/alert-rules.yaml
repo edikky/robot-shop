@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: robot-shop-slo
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: robot-shop-slo
+      rules:
+        - record: robot_shop:availability:ratio_5m
+          expr: avg(avg_over_time(probe_success{job="robot-shop-probe"}[5m]))
+        - alert: RobotShopAvailabilitySLOBreach
+          expr: robot_shop:availability:ratio_5m < 0.99
+          for: 1m
+          labels:
+            severity: page
+            namespace: monitoring
+          annotations:
+            summary: "Robot Shop availability is below the 99% SLO"
+            description: "Availability over the last 5 minutes is {{ $value | humanizePercentage }}."
+            runbook_url: "https://github.com/edikky/robot-shop/blob/master/docs/runbook.md"
