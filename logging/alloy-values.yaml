@@ -1,0 +1,57 @@
+controller:
+  type: deployment
+  replicas: 1
+
+alloy:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+  configMap:
+    create: true
+    content: |
+      logging {
+        level = "info"
+      }
+
+      discovery.kubernetes "robot_shop" {
+        role = "pod"
+
+        namespaces {
+          names = ["robot-shop"]
+        }
+      }
+
+      discovery.relabel "robot_shop" {
+        targets = discovery.kubernetes.robot_shop.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+      }
+
+      loki.source.kubernetes "robot_shop" {
+        targets    = discovery.relabel.robot_shop.output
+        forward_to = [loki.write.local.receiver]
+      }
+
+      loki.write "local" {
+        endpoint {
+          url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
